@@ -2,17 +2,30 @@
   <div className="container">
     <div className="row justify-content-center">
       <div className="col-md-5 col-lg-4">
+
         <div className="text-center mb-4">
           <h1 className="fw-bold text-dark">
             Budgeter<span className="text-accent">.</span>
           </h1>
           <p className="text-muted">
-            Welcome back! Please login to your account.
+            Create your free account to get started.
           </p>
         </div>
 
           <form>
-            <div className="mb-4">
+            <div className="mb-3">
+              <label className="form-label text-muted small fw-bold text-uppercase">
+                Full Name
+              </label>
+              <input
+                type="text"
+                className="form-control form-control-lg bg-light border-0"
+                placeholder="John Doe"
+                required
+              />
+            </div>
+
+            <div className="mb-3">
               <label className="form-label text-muted small fw-bold text-uppercase">
                 Email Address
               </label>
@@ -25,15 +38,9 @@
             </div>
 
             <div className="mb-4">
-              <div className="d-flex justify-content-between align-items-center mb-1">
-                <label className="form-label text-muted small fw-bold text-uppercase mb-0">
-                  Password
-                </label>
-                <a href="#" className="small text-accent text-decoration-none">
-                  Forgot?
-                </a>
-              </div>
-
+              <label className="form-label text-muted small fw-bold text-uppercase">
+                Password
+              </label>
               <input
                 type="password"
                 className="form-control form-control-lg bg-light border-0"
@@ -43,15 +50,15 @@
             </div>
 
             <button className="btn btn-accent w-100 btn-lg mb-3" type="submit">
-              Log In
+              Create Account
             </button>
           </form>
 
           <div className="text-center">
             <p className="text-muted mb-0">
-              Don't have an account?
-              <a href="/signup" className="text-accent fw-bold text-decoration-none">
-                Sign up
+              Already have an account?
+              <a href="/login" className="text-accent fw-bold text-decoration-none">
+                Log in
               </a>
             </p>
           </div>
@@ -62,6 +69,7 @@
             ← Back to Home
           </a>
         </div>
+
       </div>
     </div>
   </div>
