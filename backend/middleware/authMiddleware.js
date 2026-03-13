@@ -1,14 +1,16 @@
+const User = require('../models/User');
 const jwt = require('jsonwebtoken'); // for token authentication 
+ 
 
-const protect = (req, res, next) => { // to protect routes
+const protect = async (req, res, next) => { // to protect routes
     let token;  
 
     if(req.headers.authorization && req.headers.authorization.startsWith("Bearer") // Check if the authorization header exists and starts with "Bearer"
     ) {
         try {
             token = req.headers.authorization.split(' ')[1]; // extracting token 
-            const decoded = kwt.verify(token, "SECRET_KEY") // token verification
-            req.user = {id: decoded.id}; // get user id from token 
+            const decoded = jwt.verify(token, process.env.JWT_SECRET) // token verification
+            req.user = await User.findById(decoded.id).select("-password"); // get user id from token 
             next(); //switch to next controller
         } 
         catch (error) 

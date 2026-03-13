@@ -5,7 +5,7 @@ const {protect} = require("../middleware/authMiddleware"); // to protect routes
 const multer = require("multer"); // multer to handle file uploads like images
 const path = require("path");  
 
-// configuring multer
+// configuring multer for storage
 
 const storage = multer.diskStorage
 ({ 
@@ -17,7 +17,7 @@ const storage = multer.diskStorage
     { 
         cb
         (
-            null, `${file.filedname}-${Date.now()}${path.extname(file.orignalname)}` // filename format to be saved in upload folder 
+            null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}` // filename format to be saved in upload folder 
         ); 
     }
 }); 

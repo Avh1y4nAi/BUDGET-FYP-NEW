@@ -1,7 +1,6 @@
 const User = require("../models/User"); //importing user model 
 const bcrypt = require("bcryptjs"); //password hashing library
 const jwt = require("jsonwebtoken"); //for token authentication
-const { useReducer } = require("react");
 
 exports.register = async (req, res) => // register user controller
 {
@@ -149,5 +148,5 @@ exports.updateUserProfile = async (req, res) => // controller for updating user 
 
 const generateToken = (id) => // generate token function 
 {
-    return jwt.sign({id}, "SECRETKEY", {expiresIn: "20d"}); // sign token with user id and secret key, set expiration time 
+    return jwt.sign({id}, process.env.JWT_SECRET, {expiresIn: "20d"}); // sign token with user id and secret key, set expiration time 
 }; 

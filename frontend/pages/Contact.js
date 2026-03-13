@@ -10,7 +10,7 @@
 
       <div className="container my-5 py-4">
         <div className="row g-5">
-          {/* Contact Information */}
+
           <div className="col-lg-5">
             <div className="pe-lg-4">
               <h2 className="fw-bold mb-4">Let's start a conversation</h2>
@@ -53,7 +53,7 @@
             </div>
           </div>
 
-          {/* Contact Form */}
+
           <div className="col-lg-7">
             <div className="card-custom p-4 p-md-5 border-0 bg-white">
               <h3 className="fw-bold mb-4">Send us a message</h3>
@@ -92,7 +92,6 @@
         </div>
       </div>
 
-       {/* Map Placeholder */}
        <div className="bg-light w-100" style={{height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
            <div className="text-center text-muted">
                <span style={{fontSize: '3rem'}}></span>

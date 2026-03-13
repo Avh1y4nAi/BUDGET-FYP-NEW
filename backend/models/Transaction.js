@@ -10,4 +10,4 @@ const TransactionSchema = new mongoose.Schema({ // defining transaction scehma
     createdAt: {type: Date, default: Date.now} 
 }); 
 
-module.exports = mongoose.model("Transaction", TransactionSchemea); //Exporting transaction model according to the created schema 
+module.exports = mongoose.model("Transaction", TransactionSchema); //Exporting transaction model according to the created schema 
