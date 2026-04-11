@@ -1,123 +1,206 @@
-const Transaction = require("../models/Transaction"); // importing transaction model
+const Transaction = require('../models/Transaction');
 
+// @desc    Get all transactions
+// @route   GET /api/transactions
+// @access  Private
+exports.getTransactions = async (req, res, next) => {
+  try {
+    const transactions = await Transaction.find({ user: req.user.id }).sort({ date: -1 });
 
+    return res.status(200).json({
+      success: true,
+      count: transactions.length,
+      data: transactions
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: 'Server Error'
+    });
+  }
+};
 
-exports.getTransactions = async (req, res) => // get transactions controller 
-{
-    try
-    {
-        const transactions = await Transaction.find({User: req.user._id}).sort({createdAt: -1}); // finding transaction by user id and sorted by date in descending order 
+// @desc    Add transaction
+// @route   POST /api/transactions
+// @access  Private
+exports.addTransaction = async (req, res, next) => {
+  try {
+    const { text, amount, type, category, date } = req.body;
 
-        return res.status(200).json
-        ({
-            success: true, count: transactions.length, data: transactions // respond with success, count of transactions and transaction data 
-        });
-    } 
-    catch (error)
-    {
-        return res.status(500).json
-        ({success: false, error: 'Server Error'}); // response for server error
+    const transaction = await Transaction.create({
+      text,
+      amount,
+      type,
+      category, 
+      date,
+      user: req.user.id
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: transaction
+    });
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      const messages = Object.values(err.errors).map(val => val.message);
+
+      return res.status(400).json({
+        success: false,
+        error: messages
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        error: 'Server Error'
+      });
     }
-}; 
+  }
+};
+
+// @desc    Update transaction
+
+// @route   PUT /api/transactions/:id
+
+// @access  Private
+
+exports.updateTransaction = async (req, res, next) => {
+
+  try {
+
+    let transaction = await Transaction.findById(req.params.id);
 
 
 
-exports.addTransactions = async (req, res) => // add transaction controller
-{
-    try
-    {
-        const {text, amount, type, category, date} = req.body; // reqeuest data from request body
+    if (!transaction) {
 
-        const transaction = await Transaction.create({
-            text, amount, type, category, date, User: req.user._id // create transaction with the provided data and user id from request
-        }); 
+      return res.status(404).json({
 
-        return res.status(201).json({
-            success: true, data: transaction // response with success and transaction data
-        }); 
-    } 
-    catch (error)
-    {
-        return res.status(500).json({success: false, message: error.message}); // response for server error
+        success: false,
+
+        error: 'No transaction found'
+
+      });
+
     }
-}; 
 
 
 
+    // Make sure user owns transaction
 
-exports.updateTransactions = async (req, res) => // update transaction controller
-{
-    try
-    {
-        let transaction = await Transaction.findById (req.params.id); // finding transaction by id from request parameters)
+    if (transaction.user.toString() !== req.user.id) {
 
-        if (!transaction) // for transaction not found
-        {
-            return res.status(404).json({success: false, message: "Transaction not found"}); 
-        }
+      return res.status(401).json({
 
-        if (transaction.User.toString() !== req.user.id) // for unauthorized access
-        {
-            return res.status(401).json({success: false, message: "Not authorized"}); // return unauthorized error message
-        }
+        success: false,
 
-        transaction = await Transaction.findByIdAndUpdate (req.params.id, req. body, {new: true, runValidators: true}); // to update transaction with the provided data and return the updated transaction
+        error: 'User not authorized'
 
-        return res.status(200).json({success: true, data: transaction}); // respond with sucess and updated data 
+      });
+
     }
-    catch (error)
-    {
-        return res.status(500).json({sucesss: false, message: error.message}); // response for servor error
+
+
+
+    transaction = await Transaction.findByIdAndUpdate(req.params.id, req.body, {
+
+      new: true,
+
+      runValidators: true
+
+    });
+
+
+
+    return res.status(200).json({
+
+      success: true,
+
+      data: transaction
+
+    });
+
+  } catch (err) {
+
+    return res.status(500).json({
+
+      success: false,
+
+      error: 'Server Error'
+
+    });
+
+  }
+
+};
+
+
+
+// @desc    Delete transaction
+
+// @route   DELETE /api/transactions/:id
+
+// @access  Private
+
+exports.deleteTransaction = async (req, res, next) => {
+
+  try {
+
+    const transaction = await Transaction.findById(req.params.id);
+
+
+
+    if (!transaction) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        error: 'No transaction found'
+
+      });
+
     }
-}; 
 
 
 
+    // Make sure user owns transaction
 
-exports.deleteTransactions = async (req, res) => // delete transaction controller
-{
-    try
-    {
-        const transaction = await Transaction.findById(req.params.id); 
+    if (transaction.user.toString() !== req.user.id) {
 
-        if (!transaction) 
-        {
-            return res.status(404).json({success: false, message: "Transaction not found"});  
-        }
+      return res.status(401).json({
 
-        if (transaction.user.toString() !== req.user.id) //  unauthorized access
-        {
-            return res.status(401).json({success: false, message: "Not authorized"}); 
-        }
+        success: false,
 
-        await transaction.deleteOne(); // delete transaction 
+        error: 'User not authorized'
 
-        return res.status(200).json({success: true, data: transaction}); // respond with success and deleted transaction data
+      });
+
     }
-    catch (error)
-    {
-        return res.status(500).json({success: false, message: error.message}); 
-    }
-}; 
 
 
 
-exports.getTransactionSummary = async (req, res) =>  
-{
-    try 
-    {
-        const transactions = await Transaction.find({User: req.user._id}); 
+    await transaction.deleteOne();
 
-        const totalIncome = transactions .filter (t=> t.type === 'income') .reduce ((acc, t) => acc + t.amount, 0); 
-        const totalExpense = transactions .filter (t =>t.type === 'expense') .reduce ((acc, t) => acc + t.amount, 0); 
 
-        res.status(200).json ({
-            success: true,
-            totalIncome,
-            totalExpense,
-            balance: totalIncome - totalExpense, count: transactions.length
-        }); 
-    }catch (error){
-        res.status(500).json({success: false, message: error.message}); 
-    }
-}; 
+
+    return res.status(200).json({
+
+      success: true,
+
+      data: {}
+
+    });
+
+  } catch (err) {
+
+    return res.status(500).json({
+
+      success: false,
+
+      error: 'Server Error'
+
+    });
+
+  }
+
+};

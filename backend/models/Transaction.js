@@ -1,13 +1,38 @@
-const mongoose = require("mongoose"); //for MongoDB connection
+const mongoose = require('mongoose');
 
-const TransactionSchema = new mongoose.Schema({ // defining transaction scehma 
-    text: {type: String, trim: true, required: [true, "Please add some text"]},
-    amount: {type: Number, required: [true, "Please add some number"]},
-    type: {type: String, enum: ["income", "expense"], required: true},
-    category: {type: String, required: false, default: "General"},
-    date: {type: Date, default: Date.now},
-    User: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true}, // reference to user model
-    createdAt: {type: Date, default: Date.now} 
-}); 
+const TransactionSchema = new mongoose.Schema({
+  text: {
+    type: String,
+    trim: true,
+    required: [true, 'Please add some text']
+  },
+  amount: {
+    type: Number,
+    required: [true, 'Please add a positive or negative number']
+  },
+  type: {
+    type: String,
+    enum: ['income', 'expense'],
+    required: true
+  },
+  category: {
+    type: String,
+    required: false, // Optional for now, but good for "Category" feature
+    default: 'General'
+  },
+  date: {
+    type: Date,
+    default: Date.now
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
 
-module.exports = mongoose.model("Transaction", TransactionSchema); //Exporting transaction model according to the created schema 
+module.exports = mongoose.model('Transaction', TransactionSchema);

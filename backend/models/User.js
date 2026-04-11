@@ -1,12 +1,11 @@
-const mongoose = require("mongoose"); // for MongoDB connection
+const mongoose = require("mongoose");
 
-const UserSchema = new mongoose.Schema({ //define user schema 
-    name: {type: String, required: true},
-    email: {type: String, required: true, unique: true},
-    password: {type: String, required: true},
-    theme: {type: String, default: "light"},
-    profilePicture: {type: String, default: ""}
-}, {timestamps: true}); // add createdat and updatedat timestamps 
+const UserSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  profilePic: { type: String, default: "" },
+  theme: { type: String, default: "light" }
+}, { timestamps: true });
 
-module.exports = mongoose.model("User", UserSchema); // export user mode laccording to the created schema 
- 
+module.exports = mongoose.model("User", UserSchema);
