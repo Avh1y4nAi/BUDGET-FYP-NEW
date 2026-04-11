@@ -10,6 +10,8 @@ import {
 } from 'recharts';
 import { Plus, Trash2, Edit3, Download, TrendingUp, Wallet, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { Modal, Button, Form } from 'react-bootstrap';
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 function Dashboard() {
   const { user, token } = useAuth();
@@ -27,7 +29,7 @@ function Dashboard() {
     } else {
       fetchTransactions();
     }
-  }, [token]);
+  }, [token, navigate]);
 
   const fetchTransactions = async () => {
     try {
@@ -101,6 +103,47 @@ function Dashboard() {
 
   const balance = totalIncome - totalExpense;
 
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    const tableColumn = ["Description", "Date", "Category", "Type", "Amount"];
+    const tableRows = [];
+
+    transactions.forEach((t) => {
+      const transactionData = [
+        t.text,
+        new Date(t.date).toLocaleDateString(),
+        t.category,
+        t.type.charAt(0).toUpperCase() + t.type.slice(1),
+        `Rs. ${Number(t.amount).toLocaleString()}`,
+      ];
+      tableRows.push(transactionData);
+    });
+
+    // Add title and summary
+    doc.setFontSize(20);
+    doc.text("Financial Report", 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`User: ${user?.name}`, 14, 30);
+    doc.text(`Date Generated: ${new Date().toLocaleString()}`, 14, 36);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text(`Total Balance: Rs. ${balance.toLocaleString()}`, 14, 48);
+    doc.text(`Total Income: Rs. ${totalIncome.toLocaleString()}`, 14, 54);
+    doc.text(`Total Expenses: Rs. ${totalExpense.toLocaleString()}`, 14, 60);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 70,
+      theme: 'grid',
+      headStyles: { fillColor: [16, 185, 129] }, // Emerald-500 color from your UI
+    });
+
+    doc.save(`Financial_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
   // Chart Data Preparation
   const chartData = useMemo(() => {
     const dailyData = {};
@@ -140,7 +183,7 @@ function Dashboard() {
             <h2 className="fw-bold text-dark mb-1">Dashboard</h2>
             <p className="text-muted">Welcome back, {user?.name}! <Link to="/settings" className="text-primary text-decoration-none fw-bold small">Manage Settings</Link></p>
           </div>
-          <button className="btn btn-primary-custom d-flex align-items-center gap-2">
+          <button onClick={exportPDF} className="btn btn-primary-custom d-flex align-items-center gap-2">
             <Download size={18} /> Export Report
           </button>
         </div>
