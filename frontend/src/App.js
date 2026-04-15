@@ -7,6 +7,8 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import Transactions from "./pages/Transactions";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -19,8 +21,10 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/transactions" element={<Transactions />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Profile />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   );

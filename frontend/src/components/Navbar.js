@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { LogOut, User, LayoutDashboard, Home, Info, Mail, Settings } from "lucide-react";
+import { LogOut, User, LayoutDashboard, Home, Info, Mail, Settings, ReceiptText, ShieldAlert } from "lucide-react";
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -77,9 +77,21 @@ function Navbar() {
                   <span className="fw-bold text-dark">{user.name.split(' ')[0]}</span>
                 </button>
                 <ul className="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-2 mt-2">
+                  {user.isAdmin && (
+                    <li>
+                      <Link className="dropdown-item rounded-2 d-flex align-items-center gap-2 py-2 text-danger fw-bold" to="/admin">
+                        <ShieldAlert size={16} /> Admin Panel
+                      </Link>
+                    </li>
+                  )}
                   <li>
                     <Link className="dropdown-item rounded-2 d-flex align-items-center gap-2 py-2" to="/profile">
                       <User size={16} /> My Profile
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item rounded-2 d-flex align-items-center gap-2 py-2" to="/transactions">
+                      <ReceiptText size={16} /> Transactions
                     </Link>
                   </li>
                   <li>

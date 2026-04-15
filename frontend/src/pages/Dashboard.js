@@ -8,7 +8,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend, BarChart, Bar 
 } from 'recharts';
-import { Plus, Trash2, Edit3, Download, TrendingUp, Wallet, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { Plus, Trash2, Edit3, Download, TrendingUp, Wallet, ArrowUpCircle, ArrowDownCircle, Sparkles, Target } from "lucide-react";
 import { Modal, Button, Form } from 'react-bootstrap';
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -21,6 +21,12 @@ function Dashboard() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [aiInsight, setAiInsight] = useState(null);
+  const [fetchingAi, setFetchingAi] = useState(false);
+  const [goals, setGoals] = useState([]);
+  const [showGoalModal, setShowGoalModal] = useState(false);
+  const [newGoalData, setNewGoalData] = useState({ title: "", targetAmount: "", currentAmount: 0, category: "General" });
+  const [editingGoal, setEditingGoal] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,8 +34,35 @@ function Dashboard() {
        navigate("/login");
     } else {
       fetchTransactions();
+      fetchAiInsights();
+      fetchGoals();
     }
   }, [token, navigate]);
+
+  const fetchGoals = async () => {
+    try {
+      const { data } = await axios.get('/api/goals');
+      if (data.success) {
+        setGoals(data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch goals");
+    }
+  };
+
+  const fetchAiInsights = async () => {
+    try {
+        setFetchingAi(true);
+        const { data } = await axios.post('/api/ai/insights');
+        if (data.success) {
+            setAiInsight(data.insight);
+        }
+    } catch (err) {
+        console.error("Failed to fetch AI insights");
+    } finally {
+        setFetchingAi(false);
+    }
+  };
 
   const fetchTransactions = async () => {
     try {
@@ -56,6 +89,7 @@ function Dashboard() {
       if (data.success) {
         setTransactions([data.data, ...transactions]);
         setFormData({ text: "", amount: "", type: "expense", category: "General", date: new Date().toISOString().split('T')[0] });
+        fetchAiInsights();
       }
     } catch (err) {
       setError("Error adding transaction");
@@ -92,6 +126,46 @@ function Dashboard() {
     }
   };
 
+  const handleGoalSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingGoal) {
+        const { data } = await axios.put(`/api/goals/${editingGoal._id}`, editingGoal);
+        if (data.success) {
+          setGoals(goals.map(g => g._id === editingGoal._id ? data.data : g));
+          setEditingGoal(null);
+          setShowGoalModal(false);
+        }
+      } else {
+        const { data } = await axios.post('/api/goals', newGoalData);
+        if (data.success) {
+          setGoals([data.data, ...goals]);
+          setNewGoalData({ title: "", targetAmount: "", currentAmount: 0, category: "General" });
+          setShowGoalModal(false);
+        }
+      }
+    } catch (err) {
+      setError("Error saving goal");
+    }
+  };
+
+  const deleteGoal = async (id) => {
+    if (!window.confirm("Are you sure?")) return;
+    try {
+      const { data } = await axios.delete(`/api/goals/${id}`);
+      if (data.success) {
+        setGoals(goals.filter((g) => g._id !== id));
+      }
+    } catch (err) {
+      setError("Error deleting goal");
+    }
+  };
+
+  const handleEditGoal = (goal) => {
+    setEditingGoal(goal);
+    setShowGoalModal(true);
+  };
+
   // Calculations
   const totalIncome = transactions
     .filter((t) => t.type === "income")
@@ -102,6 +176,7 @@ function Dashboard() {
     .reduce((acc, curr) => acc + Number(curr.amount), 0);
 
   const balance = totalIncome - totalExpense;
+  const currencySymbol = user?.currency === 'USD' ? '$' : 'Rs.';
 
   const exportPDF = () => {
     const doc = new jsPDF();
@@ -114,7 +189,7 @@ function Dashboard() {
         new Date(t.date).toLocaleDateString(),
         t.category,
         t.type.charAt(0).toUpperCase() + t.type.slice(1),
-        `Rs. ${Number(t.amount).toLocaleString()}`,
+        `${currencySymbol} ${Number(t.amount).toLocaleString()}`,
       ];
       tableRows.push(transactionData);
     });
@@ -129,9 +204,9 @@ function Dashboard() {
     
     doc.setFontSize(12);
     doc.setTextColor(0);
-    doc.text(`Total Balance: Rs. ${balance.toLocaleString()}`, 14, 48);
-    doc.text(`Total Income: Rs. ${totalIncome.toLocaleString()}`, 14, 54);
-    doc.text(`Total Expenses: Rs. ${totalExpense.toLocaleString()}`, 14, 60);
+    doc.text(`Total Balance: ${currencySymbol} ${balance.toLocaleString()}`, 14, 48);
+    doc.text(`Total Income: ${currencySymbol} ${totalIncome.toLocaleString()}`, 14, 54);
+    doc.text(`Total Expenses: ${currencySymbol} ${totalExpense.toLocaleString()}`, 14, 60);
 
     autoTable(doc, {
       head: [tableColumn],
@@ -193,6 +268,45 @@ function Dashboard() {
             <button type="button" className="btn-close" onClick={() => setError(null)}></button>
         </div>}
 
+        {/* Budget Status */}
+        <div className="card-custom p-4 border-0 mb-5 bg-white shadow-sm">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h5 className="fw-bold mb-0">Monthly Budget Progress</h5>
+                <span className="text-muted small">Budget: {currencySymbol} {(user?.monthlyBudget || 50000).toLocaleString()}</span>
+            </div>
+            <div className="progress mb-2" style={{height: '10px'}}>
+                <div 
+                    className={`progress-bar ${totalExpense > (user?.monthlyBudget || 50000) ? 'bg-danger' : 'bg-success'}`} 
+                    role="progressbar" 
+                    style={{width: `${Math.min((totalExpense / (user?.monthlyBudget || 50000)) * 100, 100)}%`}}
+                ></div>
+            </div>
+            <div className="d-flex justify-content-between">
+                <span className="text-muted small">Spent: {currencySymbol} {totalExpense.toLocaleString()}</span>
+                <span className={`small fw-bold ${totalExpense > (user?.monthlyBudget || 50000) ? 'text-danger' : 'text-success'}`}>
+                    {totalExpense > (user?.monthlyBudget || 50000) ? `Over budget by ${currencySymbol} ${(totalExpense - (user?.monthlyBudget || 50000)).toLocaleString()}` : `Remaining: ${currencySymbol} ${((user?.monthlyBudget || 50000) - totalExpense).toLocaleString()}`}
+                </span>
+            </div>
+        </div>
+
+        {/* AI Insight Card */}
+        <div className="card-custom p-4 border-0 mb-5 bg-white shadow-sm border-start border-primary border-4">
+            <div className="d-flex align-items-center gap-3 mb-2">
+                <div className="p-2 bg-primary bg-opacity-10 rounded-circle text-primary">
+                    <Sparkles size={20} />
+                </div>
+                <h5 className="fw-bold mb-0">AI Assistant Insights</h5>
+            </div>
+            {fetchingAi ? (
+                <div className="d-flex align-items-center gap-2 text-muted">
+                    <div className="spinner-border spinner-border-sm" role="status"></div>
+                    <span className="small">Analyzing your finances...</span>
+                </div>
+            ) : (
+                <p className="text-muted mb-0">{aiInsight || "Add more transactions to get insights."}</p>
+            )}
+        </div>
+
         {/* Summary Cards */}
         <div className="row g-4 mb-5">
           <div className="col-md-4">
@@ -200,7 +314,7 @@ function Dashboard() {
               <div className="d-flex justify-content-between align-items-start mb-3">
                 <div>
                   <p className="text-muted text-uppercase small fw-bold mb-1">Total Balance</p>
-                  <h3 className="fw-bold mb-0">Rs. {balance.toLocaleString()}</h3>
+                  <h3 className="fw-bold mb-0">{currencySymbol} {balance.toLocaleString()}</h3>
                 </div>
                 <div className="p-3 bg-primary bg-opacity-10 rounded-3 text-primary">
                   <Wallet size={24} />
@@ -220,7 +334,7 @@ function Dashboard() {
               <div className="d-flex justify-content-between align-items-start mb-3">
                 <div>
                   <p className="text-muted text-uppercase small fw-bold mb-1">Total Income</p>
-                  <h3 className="fw-bold text-success mb-0">+Rs. {totalIncome.toLocaleString()}</h3>
+                  <h3 className="fw-bold text-success mb-0">+{currencySymbol} {totalIncome.toLocaleString()}</h3>
                 </div>
                 <div className="p-3 bg-success bg-opacity-10 rounded-3 text-success">
                   <ArrowUpCircle size={24} />
@@ -237,7 +351,7 @@ function Dashboard() {
               <div className="d-flex justify-content-between align-items-start mb-3">
                 <div>
                   <p className="text-muted text-uppercase small fw-bold mb-1">Total Expenses</p>
-                  <h3 className="fw-bold text-danger mb-0">-Rs. {totalExpense.toLocaleString()}</h3>
+                  <h3 className="fw-bold text-danger mb-0">-{currencySymbol} {totalExpense.toLocaleString()}</h3>
                 </div>
                 <div className="p-3 bg-danger bg-opacity-10 rounded-3 text-danger">
                   <ArrowDownCircle size={24} />
@@ -376,12 +490,84 @@ function Dashboard() {
         </div>
 
         <div className="row g-4">
-           {/* Recent Transactions */}
+           {/* Savings Goals */}
            <div className="col-lg-8">
+            <div className="card-custom p-4 border-0 bg-white shadow-sm mb-4">
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <div className="d-flex align-items-center gap-3">
+                  <div className="p-2 bg-primary bg-opacity-10 rounded-circle text-primary">
+                    <Target size={20} />
+                  </div>
+                  <h5 className="fw-bold mb-0">Savings Goals</h5>
+                </div>
+                <button 
+                  className="btn btn-outline-primary btn-sm d-flex align-items-center gap-1 fw-bold"
+                  onClick={() => { setEditingGoal(null); setNewGoalData({ title: "", targetAmount: "", currentAmount: 0, category: "General" }); setShowGoalModal(true); }}
+                >
+                  <Plus size={16} /> Add Goal
+                </button>
+              </div>
+
+              <div className="row g-3">
+                {goals.map((goal) => {
+                  const percent = Math.min(Math.round((goal.currentAmount / goal.targetAmount) * 100), 100);
+                  return (
+                    <div key={goal._id} className="col-md-6">
+                      <div className="p-3 border rounded-3 bg-light bg-opacity-50">
+                        <div className="d-flex justify-content-between align-items-start mb-2">
+                          <div>
+                            <h6 className="fw-bold mb-0 text-dark">{goal.title}</h6>
+                            <span className="text-muted small">{goal.category}</span>
+                          </div>
+                          <div className="d-flex gap-1">
+                            <button className="btn btn-sm btn-link text-primary p-0" onClick={() => handleEditGoal(goal)}>
+                              <Edit3 size={14} />
+                            </button>
+                            <button className="btn btn-sm btn-link text-danger p-0" onClick={() => deleteGoal(goal._id)}>
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="d-flex justify-content-between mb-1">
+                          <span className="small text-muted">{currencySymbol} {Number(goal.currentAmount).toLocaleString()}</span>
+                          <span className="small fw-bold text-dark">{currencySymbol} {Number(goal.targetAmount).toLocaleString()}</span>
+                        </div>
+                        
+                        <div className="progress mb-2" style={{height: '8px'}}>
+                          <div 
+                            className={`progress-bar bg-primary`} 
+                            role="progressbar" 
+                            style={{width: `${percent}%`}}
+                          ></div>
+                        </div>
+                        
+                        <div className="text-end">
+                          <span className="small text-primary fw-bold">{percent}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {goals.length === 0 && (
+                  <div className="col-12 text-center py-4 text-muted">
+                    <p className="small mb-2">No savings goals yet.</p>
+                    <button 
+                      className="btn btn-link btn-sm text-primary text-decoration-none fw-bold"
+                      onClick={() => setShowGoalModal(true)}
+                    >
+                      Create your first goal
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Recent Transactions */}
             <div className="card-custom p-4 border-0 bg-white shadow-sm h-100">
               <div className="d-flex justify-content-between align-items-center mb-4">
                 <h5 className="fw-bold mb-0">Recent Transactions</h5>
-                <button className="btn btn-link text-accent text-decoration-none small fw-bold p-0">View All</button>
+                <Link to="/transactions" className="btn btn-link text-accent text-decoration-none small fw-bold p-0">View All</Link>
               </div>
               
               <div className="table-responsive">
@@ -397,7 +583,7 @@ function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {transactions.map((t) => (
+                    {transactions.slice(0, 5).map((t) => (
                       <tr key={t._id}>
                         <td className="ps-3 border-bottom-0">
                           <span className="fw-bold text-dark">{t.text}</span>
@@ -412,7 +598,7 @@ function Dashboard() {
                           </span>
                         </td>
                         <td className={`text-end fw-bold border-bottom-0 ${t.type === 'income' ? 'text-success' : 'text-dark'}`}>
-                          {t.type === 'income' ? '+' : '-'}Rs. {Number(t.amount).toLocaleString()}
+                          {t.type === 'income' ? '+' : '-'}{currencySymbol} {Number(t.amount).toLocaleString()}
                         </td>
                          <td className="text-end border-bottom-0 pe-3">
                             <div className="d-flex gap-2 justify-content-end">
@@ -503,7 +689,7 @@ function Dashboard() {
                                           <div className="rounded-circle me-2" style={{width: 8, height: 8, backgroundColor: COLORS[index % COLORS.length]}}></div>
                                           <span className="text-muted small">{cat.name}</span>
                                       </div>
-                                      <span className="fw-bold small">Rs. {cat.value.toLocaleString()}</span>
+                                      <span className="fw-bold small">{currencySymbol} {cat.value.toLocaleString()}</span>
                                   </div>
                               ))}
                           </div>
@@ -580,6 +766,77 @@ function Dashboard() {
             </Button>
             <Button variant="primary-custom" type="submit" className="px-4">
               Save Changes
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+
+      {/* Goal Modal */}
+      <Modal show={showGoalModal} onHide={() => setShowGoalModal(false)} centered>
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fw-bold">{editingGoal ? 'Edit Goal' : 'Create New Goal'}</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleGoalSubmit}>
+          <Modal.Body className="pt-4">
+            <Form.Group className="mb-3">
+              <Form.Label className="small text-muted fw-bold text-uppercase">Title</Form.Label>
+              <Form.Control 
+                type="text" 
+                value={editingGoal ? editingGoal.title : newGoalData.title} 
+                onChange={(e) => editingGoal ? setEditingGoal({...editingGoal, title: e.target.value}) : setNewGoalData({...newGoalData, title: e.target.value})}
+                required
+                placeholder="e.g. Save for a Laptop"
+                className="bg-light border-0 py-2"
+              />
+            </Form.Group>
+            <div className="row">
+                <div className="col-6">
+                    <Form.Group className="mb-3">
+                        <Form.Label className="small text-muted fw-bold text-uppercase">Target Amount</Form.Label>
+                        <Form.Control 
+                            type="number" 
+                            value={editingGoal ? editingGoal.targetAmount : newGoalData.targetAmount} 
+                            onChange={(e) => editingGoal ? setEditingGoal({...editingGoal, targetAmount: e.target.value}) : setNewGoalData({...newGoalData, targetAmount: e.target.value})}
+                            required
+                            className="bg-light border-0 py-2"
+                        />
+                    </Form.Group>
+                </div>
+                <div className="col-6">
+                    <Form.Group className="mb-3">
+                        <Form.Label className="small text-muted fw-bold text-uppercase">Current Saved</Form.Label>
+                        <Form.Control 
+                            type="number" 
+                            value={editingGoal ? editingGoal.currentAmount : newGoalData.currentAmount} 
+                            onChange={(e) => editingGoal ? setEditingGoal({...editingGoal, currentAmount: e.target.value}) : setNewGoalData({...newGoalData, currentAmount: e.target.value})}
+                            required
+                            className="bg-light border-0 py-2"
+                        />
+                    </Form.Group>
+                </div>
+            </div>
+            <Form.Group className="mb-3">
+              <Form.Label className="small text-muted fw-bold text-uppercase">Category</Form.Label>
+              <Form.Select 
+                value={editingGoal ? editingGoal.category : newGoalData.category} 
+                onChange={(e) => editingGoal ? setEditingGoal({...editingGoal, category: e.target.value}) : setNewGoalData({...newGoalData, category: e.target.value})}
+                className="bg-light border-0 py-2"
+              >
+                <option value="General">General</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Travel">Travel</option>
+                <option value="Education">Education</option>
+                <option value="Emergency Fund">Emergency Fund</option>
+                <option value="Vehicle">Vehicle</option>
+              </Form.Select>
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer className="border-0 pt-0">
+            <Button variant="light" className="px-4" onClick={() => setShowGoalModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary-custom" type="submit" className="px-4">
+              {editingGoal ? 'Save Changes' : 'Create Goal'}
             </Button>
           </Modal.Footer>
         </Form>

@@ -12,6 +12,8 @@ const Profile = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [profilePic, setProfilePic] = useState(user?.profilePic || '');
+  const [monthlyBudget, setMonthlyBudget] = useState(user?.monthlyBudget || 50000);
+  const [currency, setCurrency] = useState(user?.currency || 'NPR');
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
@@ -67,7 +69,9 @@ const Profile = () => {
         email,
         password,
         profilePic,
-        theme
+        theme,
+        monthlyBudget,
+        currency
       });
       updateUserInfo(data);
       setMessage('Profile updated successfully');
@@ -82,7 +86,7 @@ const Profile = () => {
       <div className="container py-5">
         <div className="row justify-content-center">
           <div className="col-md-8">
-            <div className="card-custom p-4 border-0 bg-white">
+            <div className="card-custom p-4 border-0 bg-white shadow-sm">
               <h2 className="fw-bold mb-4">User Settings</h2>
               
               {message && <div className="alert alert-success">{message}</div>}
@@ -117,11 +121,11 @@ const Profile = () => {
                 <div className="row g-4">
                   <div className="col-md-6">
                     <label className="form-label small text-muted fw-bold text-uppercase">Full Name</label>
-                    <div className="input-group">
-                      <span className="input-group-text bg-light border-0"><User size={18} className="text-muted" /></span>
+                    <div className="input-group shadow-sm">
+                      <span className="input-group-text bg-white border-end-0"><User size={18} className="text-muted" /></span>
                       <input
                         type="text"
-                        className="form-control bg-light border-0"
+                        className="form-control border-start-0 ps-0"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                       />
@@ -129,11 +133,11 @@ const Profile = () => {
                   </div>
                   <div className="col-md-6">
                     <label className="form-label small text-muted fw-bold text-uppercase">Email Address</label>
-                    <div className="input-group">
-                      <span className="input-group-text bg-light border-0"><Mail size={18} className="text-muted" /></span>
+                    <div className="input-group shadow-sm">
+                      <span className="input-group-text bg-white border-end-0"><Mail size={18} className="text-muted" /></span>
                       <input
                         type="email"
-                        className="form-control bg-light border-0"
+                        className="form-control border-start-0 ps-0"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                       />
@@ -141,11 +145,11 @@ const Profile = () => {
                   </div>
                   <div className="col-md-6">
                     <label className="form-label small text-muted fw-bold text-uppercase">New Password</label>
-                    <div className="input-group">
-                      <span className="input-group-text bg-light border-0"><Shield size={18} className="text-muted" /></span>
+                    <div className="input-group shadow-sm">
+                      <span className="input-group-text bg-white border-end-0"><Shield size={18} className="text-muted" /></span>
                       <input
                         type="password"
-                        className="form-control bg-light border-0"
+                        className="form-control border-start-0 ps-0"
                         placeholder="Leave blank to keep current"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -154,14 +158,26 @@ const Profile = () => {
                   </div>
                   <div className="col-md-6">
                     <label className="form-label small text-muted fw-bold text-uppercase">Confirm Password</label>
-                    <div className="input-group">
-                      <span className="input-group-text bg-light border-0"><Shield size={18} className="text-muted" /></span>
+                    <div className="input-group shadow-sm">
+                      <span className="input-group-text bg-white border-end-0"><Shield size={18} className="text-muted" /></span>
                       <input
                         type="password"
-                        className="form-control bg-light border-0"
+                        className="form-control border-start-0 ps-0"
                         placeholder="Confirm new password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label small text-muted fw-bold text-uppercase">Monthly Budget Goal ({currency === 'NPR' ? 'Rs.' : '$'})</label>
+                    <div className="input-group shadow-sm">
+                      <span className="input-group-text bg-white border-end-0">{currency === 'NPR' ? 'Rs.' : '$'}</span>
+                      <input
+                        type="number"
+                        className="form-control border-start-0 ps-0"
+                        value={monthlyBudget}
+                        onChange={(e) => setMonthlyBudget(e.target.value)}
                       />
                     </div>
                   </div>
@@ -169,11 +185,39 @@ const Profile = () => {
 
                 <hr className="my-5" />
 
-                <div className="mb-5">
+                <div className="mb-4">
                   <h5 className="fw-bold mb-3">Preferences</h5>
-                  <div className="d-flex align-items-center justify-content-between p-3 bg-light rounded-2">
+                  
+                  {/* Currency Selection */}
+                  <div className="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 mb-3 border">
                     <div className="d-flex align-items-center">
-                      {theme === 'light' ? <Sun className="text-warning me-3" /> : <Moon className="text-primary me-3" />}
+                      <div className="bg-white p-2 rounded-circle me-3 text-success shadow-sm">
+                        <span className="fw-bold fs-5">{currency === 'NPR' ? 'रु' : '$'}</span>
+                      </div>
+                      <div>
+                        <p className="fw-bold mb-0">Currency Settings</p>
+                        <p className="text-muted small mb-0">Choose your preferred currency (NPR or USD)</p>
+                      </div>
+                    </div>
+                    <div>
+                      <select 
+                        className="form-select border-0 bg-white shadow-sm fw-medium px-4" 
+                        value={currency} 
+                        onChange={(e) => setCurrency(e.target.value)}
+                        style={{minWidth: '120px'}}
+                      >
+                        <option value="NPR">🇳🇵 NPR</option>
+                        <option value="USD">🇺🇸 USD</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                    <div className="d-flex align-items-center">
+                      {theme === 'light' ? 
+                        <div className="bg-white p-2 rounded-circle me-3 text-warning shadow-sm"><Sun size={20} /></div> : 
+                        <div className="bg-white p-2 rounded-circle me-3 text-primary shadow-sm"><Moon size={20} /></div>
+                      }
                       <div>
                         <p className="fw-bold mb-0">Theme Mode</p>
                         <p className="text-muted small mb-0">Switch between light and dark mode</p>
@@ -193,8 +237,8 @@ const Profile = () => {
                   </div>
                 </div>
 
-                <div className="d-flex justify-content-end">
-                   <button type="submit" className="btn btn-primary-custom px-5 py-2">
+                <div className="d-flex justify-content-end mt-5">
+                   <button type="submit" className="btn btn-dark btn-lg px-5 py-2 rounded-3 shadow-sm">
                     Save Changes
                   </button>
                 </div>

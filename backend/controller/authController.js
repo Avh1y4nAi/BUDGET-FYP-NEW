@@ -40,6 +40,8 @@ exports.updateProfilePicture = async (req, res) => {
       email: updatedUser.email,
       profilePic: updatedUser.profilePic,
       theme: updatedUser.theme,
+      isAdmin: updatedUser.isAdmin,
+      currency: updatedUser.currency,
       token: generateToken(updatedUser._id),
     });
   } catch (error) {
@@ -74,6 +76,8 @@ exports.register = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        isAdmin: user.isAdmin,
+        currency: user.currency,
         token: generateToken(user._id)
       });
     } else {
@@ -112,7 +116,9 @@ exports.login = async (req, res) => {
         name: user.name,
         email: user.email,
         profilePic: user.profilePic,
-        theme: user.theme
+        theme: user.theme,
+        isAdmin: user.isAdmin,
+        currency: user.currency
       }
     });
   } catch (error) {
@@ -145,6 +151,8 @@ exports.updateUserProfile = async (req, res) => {
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
       user.theme = req.body.theme || user.theme;
+      user.monthlyBudget = req.body.monthlyBudget || user.monthlyBudget;
+      user.currency = req.body.currency || user.currency;
       
       if (req.body.profilePic) {
         user.profilePic = req.body.profilePic;
@@ -162,6 +170,8 @@ exports.updateUserProfile = async (req, res) => {
         email: updatedUser.email,
         profilePic: updatedUser.profilePic,
         theme: updatedUser.theme,
+        isAdmin: updatedUser.isAdmin,
+        currency: updatedUser.currency,
         token: generateToken(updatedUser._id), 
       });
     } else {
