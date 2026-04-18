@@ -1,6 +1,7 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
+import { Lightbulb, ShieldCheck, Smile } from "lucide-react";
 
 function About() {
   return (
@@ -30,13 +31,11 @@ function About() {
         <div className="container my-5">
           <div className="row align-items-center gx-5">
             <div className="col-lg-6 mb-5 mb-lg-0">
-               {/* Placeholder for an "About Us" image */}
-               <div className="bg-light rounded-3 p-5 text-center shadow-sm" style={{minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                  <div>
-                    <span style={{fontSize: '6rem'}}></span>
-                    <p className="text-muted mt-3">Building Trust & Financial Freedom</p>
-                  </div>
-               </div>
+               <img 
+                src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=800" 
+                alt="Financial Freedom" 
+                className="img-fluid rounded-3 shadow-sm"
+               />
             </div>
             <div className="col-lg-6">
               <div className="ps-lg-4">
@@ -72,7 +71,7 @@ function About() {
             <div className="col-md-4">
               <div className="card-custom h-100 p-4 border-0">
                 <div className="mb-4 text-accent">
-                   <span style={{fontSize: '3rem'}}></span>
+                   <Lightbulb size={48} />
                 </div>
                 <h4 className="fw-bold mb-3">Innovation</h4>
                 <p className="text-muted">
@@ -83,7 +82,7 @@ function About() {
             <div className="col-md-4">
               <div className="card-custom h-100 p-4 border-0">
                 <div className="mb-4 text-accent">
-                   <span style={{fontSize: '3rem'}}></span>
+                   <ShieldCheck size={48} />
                 </div>
                 <h4 className="fw-bold mb-3">Security</h4>
                 <p className="text-muted">
@@ -94,7 +93,7 @@ function About() {
             <div className="col-md-4">
               <div className="card-custom h-100 p-4 border-0">
                 <div className="mb-4 text-accent">
-                   <span style={{fontSize: '3rem'}}></span>
+                   <Smile size={48} />
                 </div>
                 <h4 className="fw-bold mb-3">Simplicity</h4>
                 <p className="text-muted">
