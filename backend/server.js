@@ -14,6 +14,7 @@ app.use("/api/transactions", require("./routes/transactionRoutes"));
 app.use("/api/goals", require("./routes/goalRoutes"));
 app.use("/api/contact", require("./routes/contactRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
+app.use("/api/ai", require("./routes/aiRoutes"));
 
 const dirname = path.resolve();
 app.use("/uploads", express.static(path.join(dirname, "/uploads")));

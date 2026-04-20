@@ -53,10 +53,7 @@ function Login() {
                 </div>
 
                 <div className="mb-4">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <label className="form-label text-muted small fw-bold text-uppercase mb-0">Password</label>
-                    <a href="#" className="small text-accent text-decoration-none fw-bold">Forgot?</a>
-                  </div>
+                  <label className="form-label text-muted small fw-bold text-uppercase mb-2">Password</label>
                   <input
                     type="password"
                     className="form-control form-control-lg bg-light border-0"

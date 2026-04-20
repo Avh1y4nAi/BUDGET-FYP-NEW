@@ -102,6 +102,7 @@ function Dashboard() {
       const { data } = await axios.delete(`/api/transactions/${id}`);
       if (data.success) {
         setTransactions(transactions.filter((t) => t._id !== id));
+        fetchAiInsights();
       }
     } catch (err) {
       setError("Error deleting transaction");
@@ -120,6 +121,7 @@ function Dashboard() {
       if (data.success) {
         setTransactions(transactions.map(t => t._id === editingTransaction._id ? data.data : t));
         setShowEditModal(false);
+        fetchAiInsights();
       }
     } catch (err) {
       setError("Error updating transaction");
@@ -135,6 +137,7 @@ function Dashboard() {
           setGoals(goals.map(g => g._id === editingGoal._id ? data.data : g));
           setEditingGoal(null);
           setShowGoalModal(false);
+          fetchAiInsights();
         }
       } else {
         const { data } = await axios.post('/api/goals', newGoalData);
@@ -142,6 +145,7 @@ function Dashboard() {
           setGoals([data.data, ...goals]);
           setNewGoalData({ title: "", targetAmount: "", currentAmount: 0, category: "General" });
           setShowGoalModal(false);
+          fetchAiInsights();
         }
       }
     } catch (err) {
